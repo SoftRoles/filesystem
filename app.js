@@ -21,6 +21,7 @@ app.listen(3001, function () {
     message: "Started succesfully!",
     wait: true
   });
+  console.log("Service running on http://127.0.0.1:3001")
 })
 
 app.get("/dirtree", function (req, res) {
