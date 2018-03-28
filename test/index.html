@@ -6,14 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>3001-dirtree</title>
-
-  <link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css" charset="utf-8">
-  <script src="bower_components/webix/codebase/webix.js" type="text/javascript" charset="utf-8"></script>
+  
+  <link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css">
+  <script src="bower_components/webix/codebase/webix.js" ></script>
 </head>
 
 <body>
   <script>
-    function formatBytes(a, b) { if (0 == a) return "0 Bytes"; var c = 1024, d = b || 2, e = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"], f = Math.floor(Math.log(a) / Math.log(c)); return parseFloat((a / Math.pow(c, f)).toFixed(d)) + " " + e[f] }
+    function formatBytes(a, b) {
+      if (0 == a) return "0 Bytes";
+      var c = 1024, d = b || 2,
+        e = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+        f = Math.floor(Math.log(a) / Math.log(c));
+      return parseFloat((a / Math.pow(c, f)).toFixed(d)) + " " + e[f]
+    }
     webix.ready(function () {
       var myjson = webix.DataDriver.myjson = webix.copy(webix.DataDriver.json);
       myjson.child = function (obj) {
