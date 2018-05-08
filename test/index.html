@@ -34,7 +34,7 @@
                 id: "pathInput", view: "text", label: "Path", name: "path", placeholder: "Enter full path to expand here..", on: {
                   "onChange": function (newv, oldv) {
                     $$("directoryTree").clearAll()
-                    $$("directoryTree").load("/dirtree?path=" + newv);
+                    $$("directoryTree").load("/dirtree/api?path=" + newv);
                     setTimeout(function () { $$("directoryTree").openAll() }, 2000)
                   }
                 }

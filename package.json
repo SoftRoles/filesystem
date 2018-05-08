@@ -12,7 +12,6 @@
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "directory-tree": "^2.0.0",
-    "express": "^4.16.3",
-    "node-notifier": "^5.2.1"
+    "express": "^4.16.3"
   }
 }
