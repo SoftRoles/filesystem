@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css">
+  <script src="bower_components/webix/codebase/webix.js"></script>
+
+  <style>
+    #areaA {
+      margin: 30px;
+    }
+  </style>
+  <title>Form Basic Initialization</title>
+</head>
+
+<body>
+
+  <div id="areaA"></div>
+
+
+  <script type="text/javascript" charset="utf-8">
+    webix.ui({
+      id: "form",
+      container: "areaA",
+      view: "form",
+      scroll: false,
+      width: 300,
+
+      elements: [
+        { name: "username", view: "text", label: "User" },
+        { name: "password", view: "text", type: "password", label: "Password" },
+        {
+          margin: 5, cols: [
+            {
+              view: "button", label: "Login", type: "form", click: function () {
+                webix.send("/filesystem/login", $$("form").getValues())
+              }
+            }
+          ]
+        }
+      ],
+      on: {
+        "onSubmit": function () {
+          webix.send("/filesystem/login", $$("form").getValues())
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

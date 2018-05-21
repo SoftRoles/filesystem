@@ -6,13 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>3001-dirtree</title>
-  
+
   <link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css">
-  <script src="bower_components/webix/codebase/webix.js" ></script>
+  <script src="bower_components/webix/codebase/webix.js"></script>
 </head>
 
 <body>
   <script>
+    var token = ""
+
+    webix.ajax().get("/filesystem/user", function (t, d, x) {
+      token = d.json().token
+    })
+
     function formatBytes(a, b) {
       if (0 == a) return "0 Bytes";
       var c = 1024, d = b || 2,
@@ -34,7 +40,10 @@
                 id: "pathInput", view: "text", label: "Path", name: "path", placeholder: "Enter full path to expand here..", on: {
                   "onChange": function (newv, oldv) {
                     $$("directoryTree").clearAll()
-                    $$("directoryTree").load("/dirtree/api?path=" + newv);
+                    $$("directoryTree").load("/filesystem/dirtree?path=" + newv)
+                    // webix.ajax().headers({ "Authorization": "Bearer " + token }).get("/filesystem/dirtree?path=" + newv, function (t, d, x) {
+                    //   $$("directoryTree").parse(d.json());
+                    // })
                     setTimeout(function () { $$("directoryTree").openAll() }, 2000)
                   }
                 }
