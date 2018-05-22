@@ -125,7 +125,7 @@ app.get('/filesystem/user', require('connect-ensure-login').ensureLoggedIn(), fu
 //==================================================================================================
 const dirTree = require('directory-tree');
 
-app.get("/filesystem/dirtree", passport.authenticate('bearer', {session: false}), function (req, res) {
+app.get("/filesystem/dirtree", passport.authenticate('bearer'), function (req, res) {
   console.log(dirTree(req.query.path))
   res.send(dirTree(req.query.path))
 })
