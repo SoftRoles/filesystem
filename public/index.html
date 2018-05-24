@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>3001-dirtree</title>
+  <title>3001-filesystem</title>
 
   <link rel="stylesheet" href="filesystem/bower_components/webix/codebase/skins/compact.css" type="text/css">
   <script src="filesystem/bower_components/webix/codebase/webix.js"></script>
@@ -13,11 +13,7 @@
 
 <body>
   <script>
-    var token = ""
-
-    webix.ajax().get("/filesystem/user", function (t, d, x) {
-      token = d.json().token
-    })
+    var user = ""
 
     function formatBytes(a, b) {
       if (0 == a) return "0 Bytes";
@@ -46,10 +42,10 @@
                 id: "pathInput", view: "text", label: "Path", name: "path", placeholder: "Enter full path to expand here..", on: {
                   "onChange": function (newv, oldv) {
                     $$("directoryTree").clearAll()
-                    webix.ajax().headers({ "Authorization": "Bearer " + token }).get("/filesystem/dirtree?path=" + newv, function (t, d, x) {
+                    webix.ajax().headers({ "Authorization": "Bearer " + user.token }).get("/filesystem/dirtree?path=" + newv, function (t, d, x) {
                       items = d.json()
                       $$("directoryTree").parse(parseTree(items));
-                      $$("directoryTree").serialize().forEach(function(item){$$("directoryTree").open(item.id)})
+                      // $$("directoryTree").serialize().forEach(function (item) { $$("directoryTree").open(item.id) })
                     })
                   }
                 }
@@ -63,11 +59,18 @@
               { id: "name", header: "Path", fillspace: 1, template: "{common.treetable()} #name#" },
               { id: "size", header: "Size", width: 125, template: function (obj) { return formatBytes(obj.size); } },
             ],
-            data: [{ name: "Path", open: true, children: [{ name: "Sub-Path" }] }],
+            // data: [{ name: "Path", open: true, children: [{ name: "Sub-Path" }] }],
             select: true,
           }
         ]
       });
+
+      webix.ajax().get("/filesystem/user", function (t, d, x) {
+        user = d.json()
+        webix.ajax().headers({ "Authorization": "Bearer " + user.token }).get("/filesystem/homedir", function (t, d, x) {
+          $$("pathInput").setValue(t)
+        })
+      })
     })
   </script>
 </body>

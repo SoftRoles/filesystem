@@ -124,10 +124,16 @@ app.get('/filesystem/user', require('connect-ensure-login').ensureLoggedIn(), fu
 // Filesystem
 //==================================================================================================
 const dirTree = require('directory-tree');
+var os = require("os")
 
 app.get("/filesystem/dirtree", passport.authenticate('bearer', { session: false }), function (req, res) {
   //console.log(dirTree(req.query.path))
   res.send(dirTree(req.query.path))
+})
+
+app.get("/filesystem/homedir", passport.authenticate('bearer', { session: false }), function (req, res) {
+  if(process.platform == "win32") res.send(os.homedir()+"\\desktop")
+  else res.send(os.homedir()) 
 })
 
 
