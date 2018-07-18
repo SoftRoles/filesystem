@@ -1,58 +1,63 @@
 var express = require('express');
-var bodyParser = require("body-parser")
-var cors = require("cors")
-
+var assert = require('assert');
 var request = require("request")
 
 var passport = require('passport');
-var passStrategyLocal = require('passport-local').Strategy;
 var passStrategyBearer = require('passport-http-bearer').Strategy;
+
+var session = require('express-session');
+var mongodbSessionStore = require('connect-mongodb-session')(session);
+
+var mongodbUrl = "mongodb://127.0.0.1:27017"
 
 // Create a new Express application.
 var app = express();
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(cors())
+var store = new mongodbSessionStore({
+  uri: mongodbUrl,
+  databaseName: 'auth',
+  collection: 'sessions'
+});
+
+// Catch errors
+store.on('error', function (error) {
+  assert.ifError(error);
+  assert.ok(false);
+});
+
+app.use(require('express-session')({
+  secret: 'This is a secret',
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+  },
+  store: store,
+  // Boilerplate options, see:
+  // * https://www.npmjs.com/package/express-session#resave
+  // * https://www.npmjs.com/package/express-session#saveuninitialized
+  resave: true,
+  saveUninitialized: true
+}));
+
+app.use(require('morgan')('tiny'));
+app.use(require('body-parser').json())
+app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require("cors")())
 app.use("/filesystem/bower_components", express.static(__dirname + "/public/bower_components"))
-app.use("/bower_components", express.static(__dirname + "/public/bower_components"))
+
 
 //==================================================================================================
 // Bearer Passport
 //==================================================================================================
 passport.use(new passStrategyBearer(function (token, cb) {
-  request({
-    url: "http://localhost/mongodb/api/auth/users?token=" + token,
-    headers: { "Authorization": "Bearer " + token }
-  }, function (err, ress, body) {
-    var users = JSON.parse(body)
-    if (err) return cb(err)
-    if (!users.length) { return cb(null, false); }
-    return cb(null, users[0]);
-  })
+  mongoClient.connect(mongodbUrl + "/auth", function (err, db) {
+    db.collection("users").findOne({ token: token }, function (err, user) {
+      if (err) return cb(err)
+      if (!user) { return cb(null, false); }
+      return cb(null, user);
+      db.close();
+    });
+  });
 }));
-
-//==================================================================================================
-// Local Passport
-//==================================================================================================
-// Configure the local strategy for use by Passport.
-//
-// The local strategy require a `verify` function which receives the credentials
-// (`username` and `password`) submitted by the user.  The function must verify
-// that the password is correct and then invoke `cb` with a user object, which
-// will be set at `req.user` in route handlers after authentication.
-passport.use(new passStrategyLocal(function (username, password, cb) {
-  request({
-    url: "http://localhost/mongodb/api/auth/users?username=" + username + "&password=" + password,
-    headers: { "Authorization": "Bearer %Sdf1234" }
-  }, function (err, res, body) {
-    var users = JSON.parse(body)
-    if (err) return cb(err)
-    if (!users.length) { return cb(null, false); }
-    return cb(null, users[0]);
-  })
-}));
-
 
 // Configure Passport authenticated session persistence.
 //
@@ -66,59 +71,25 @@ passport.serializeUser(function (user, cb) {
 });
 
 passport.deserializeUser(function (username, cb) {
-  request({
-    url: "http://localhost/mongodb/api/auth/users?username=" + username,
-    headers: { "Authorization": "Bearer %Sdf1234" }
-  }, function (err, res, body) {
-    var users = JSON.parse(body)
-    if (err) return cb(err)
-    if (!users.length) { return cb(null, false); }
-    return cb(null, users[0]);
-  })
+  mongoClient.connect(mongodbUrl + "/auth", function (err, db) {
+    db.collection("users").findOne({ username: username }, function (err, user) {
+      if (err) return cb(err)
+      if (!user) { return cb(null, false); }
+      return cb(null, user);
+      db.close();
+    });
+  });
 });
-
-
-// Use application-level middleware for common functionality, including
-// logging, parsing, and session handling.
-app.use(require('morgan')('combined'));
-app.use(require('cookie-parser')());
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/filesystem/login', function (req, res) {
-  res.sendFile(__dirname + '/public/login.html');
+app.get('/filesystem', require('connect-ensure-login').ensureLoggedIn({ redirectTo: "/login?source=filesystem" }), function (req, res) {
+  if (req.user.username == "admin") res.sendFile(__dirname + '/public/index.html')
+  else { req.logout(); res.send(403); }
 });
-
-app.post('/filesystem/login', passport.authenticate('local', { failureRedirect: '/filesystem/login', successRedirect: '/filesystem' }), function (req, res) {
-  res.redirect('/filesystem');
-});
-
-app.get('/filesystem/logout', function (req, res) {
-  req.logout();
-  res.redirect('/filesystem');
-});
-
-
-app.get('/filesystem', require('connect-ensure-login').ensureLoggedIn({ redirectTo: "/filesystem/login" }), function (req, res) {
-  res.sendFile(__dirname + '/public/index.html')
-});
-
-app.get('/filesystem/user', require('connect-ensure-login').ensureLoggedIn(), function (req, res) {
-  request({
-    url: "http://localhost/mongodb/api/auth/users?token=" + req.user.token,
-    headers: { "Authorization": "Bearer " + req.user.token }
-  }, function (err, ress, body) {
-    var users = JSON.parse(body)
-    res.send(users[0]);
-  })
-});
-
-
 
 //==================================================================================================
 // Filesystem
