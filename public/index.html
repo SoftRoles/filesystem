@@ -65,7 +65,7 @@
         ]
       });
 
-      webix.ajax().get("/filesystem/user", function (t, d, x) {
+      webix.ajax().get("/user", function (t, d, x) {
         user = d.json()
         webix.ajax().headers({ "Authorization": "Bearer " + user.token }).get("/filesystem/homedir", function (t, d, x) {
           $$("pathInput").setValue(t)
