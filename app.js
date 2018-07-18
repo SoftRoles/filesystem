@@ -98,14 +98,25 @@ app.get('/filesystem', require('connect-ensure-login').ensureLoggedIn({ redirect
 const dirTree = require('directory-tree');
 var os = require("os")
 
+app.get("/filesystem/files/:path", passport.authenticate('bearer', { session: false }), function (req, res) {
+  request({
+    url: "http://127.0.0.1:3000/mongodb/api/filesystem/files?path=" + req.params.path,
+    headers: { "Authorization": "Bearer " + req.user.token }
+  }, function (err, ress, body) {
+    console.log(JSON.parse(body))
+    res.send(JSON.parse(body))
+  })
+  //console.log(dirTree(req.query.path))
+  // res.sendFile(__dirname + "/files/" + req.params.path)
+})
 app.get("/filesystem/dirtree", passport.authenticate('bearer', { session: false }), function (req, res) {
   //console.log(dirTree(req.query.path))
   res.send(dirTree(req.query.path))
 })
 
 app.get("/filesystem/homedir", passport.authenticate('bearer', { session: false }), function (req, res) {
-  if(process.platform == "win32") res.send(os.homedir()+"\\desktop")
-  else res.send(os.homedir()) 
+  if (process.platform == "win32") res.send(os.homedir() + "\\desktop")
+  else res.send(os.homedir())
 })
 
 
