@@ -119,6 +119,20 @@ app.get("/filesystem/homedir", passport.authenticate('bearer', { session: false 
   else res.send(os.homedir())
 })
 
+//-----------------------------------------------------------------------------
+// filesytem : upload
+//-----------------------------------------------------------------------------
+app.use(require('express-fileupload')())
+app.post('/filesystem/upload', function (req, res) {
+  console.log(req)
+  if (!req.files) return res.status(400).send('No files were uploaded.');
+  var file = req.files.upload;
+  file.mv("files/" + String(Date.now()) + "-" + file.name, function (err) {
+    if (err) res.send({ "status": 'error', "error": err });
+    else res.send({ "status": 'server' });
+  });
+});
+
 
 app.listen(3001, function () {
   console.log("Service running on http://127.0.0.1:3001")
