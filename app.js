@@ -92,6 +92,11 @@ app.get('/filesystem', require('connect-ensure-login').ensureLoggedIn({ redirect
   else { req.logout(); res.send(403); }
 });
 
+app.get('/filesystem/test/upload', require('connect-ensure-login').ensureLoggedIn({ redirectTo: "/login?source=filesystem/test/upload" }), function (req, res) {
+  if (req.user.username == "admin") res.sendFile(__dirname + '/public/test/upload.html')
+  else { req.logout(); res.send(403); }
+});
+
 //==================================================================================================
 // Filesystem
 //==================================================================================================
@@ -122,15 +127,41 @@ app.get("/filesystem/homedir", passport.authenticate('bearer', { session: false 
 //-----------------------------------------------------------------------------
 // filesytem : upload
 //-----------------------------------------------------------------------------
+var mkdirp = require("mkdirp")
 app.use(require('express-fileupload')())
-app.post('/filesystem/upload', function (req, res) {
-  console.log(req)
-  if (!req.files) return res.status(400).send('No files were uploaded.');
-  var file = req.files.upload;
-  file.mv("files/" + String(Date.now()) + "-" + file.name, function (err) {
-    if (err) res.send({ "status": 'error', "error": err });
-    else res.send({ "status": 'server' });
-  });
+app.post('/filesystem/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  mkdirp("files/" + req.body.fileFolder, function (err) {
+    if (err) res.send(err)
+    else {
+      // console.log(req.body.fileOwners.split(","))
+      // console.log(req.body.fileUsers.split(","))
+      console.log(file)
+      var file = {
+        owners: req.body.owners ? req.body.owners.split(",") : [],
+        users: req.body.users ? req.body.users.split(",") : [],
+        name: String(Date.now()) + "-" + req.files.upload.name,
+        folder: req.body.folder
+      }
+      console.log(file)
+      request({
+        url: "http://127.0.0.1/mongodb/api/filesystem/files",
+        method: "POST",
+        headers: { "Authorization": "Bearer " + req.user.token },
+        body: file,
+        json: true
+      }, function (err, res2, body) {
+        console.log(body)
+        if (err) res.send(err)
+        else {
+          if (!req.files) return res.status(400).send('No files were uploaded.');
+          req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
+            if (err) res.send({ "status": 'error', "error": err });
+            else res.send({ "status": 'server' });
+          });
+        }
+      })
+    }
+  })
 });
 
 
