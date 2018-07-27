@@ -18,13 +18,13 @@
     <script>
 
         // get user
-        var user = ""
-        webix.ajax().get("/user", function (t, d, x) {
-            user = d.json()
-            // user.users = ["guest"]
-            // user.folder = "test/upload"
-            $$("uploadx").define("formData",{users:["guest"],folder:"test/upload"})
-        })
+        // var user = ""
+        // webix.ajax().get("/user", function (t, d, x) {
+        //     user = d.json()
+        //     // user.users = ["guest"]
+        //     // user.folder = "test/upload"
+        //     $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload" })
+        // })
 
         webix.ready(function () {
 
@@ -35,8 +35,8 @@
                 container: "upload",
                 value: "Upload file",
                 link: "mylist",
-                upload: "/filesystem/upload",
-                formData: {},
+                upload: "/filesystem/api/upload",
+                formData: { users: ["guest"], folder: "test/upload" },
                 on: {
                     "onUploadComplete": function (response) {
                         webix.message("Done");

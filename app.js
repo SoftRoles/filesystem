@@ -100,49 +100,62 @@ app.get('/filesystem/test/upload', require('connect-ensure-login').ensureLoggedI
 //==================================================================================================
 // Filesystem
 //==================================================================================================
-const dirTree = require('directory-tree');
-var os = require("os")
-
-app.get("/filesystem/files/:path", passport.authenticate('bearer', { session: false }), function (req, res) {
+app.get('/filesystem/api', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  if (!req.query.folder || !req.query.basename) return res.sendStatus(400)
   request({
-    url: "http://127.0.0.1:3000/mongodb/api/filesystem/files?path=" + req.params.path,
-    headers: { "Authorization": "Bearer " + req.user.token }
-  }, function (err, ress, body) {
-    console.log(JSON.parse(body))
-    res.send(JSON.parse(body))
+    url: "http://127.0.0.1/mongodb/api/filesystem/files",
+    method: "GET",
+    headers: { "Authorization": "Bearer " + req.user.token },
+    qs: req.query,
+    json: true
+  }, function (err, res2, body) {
+    if (err) res.send(err)
+    if (body.length === 1) res.sendFile(__dirname + "/files/" + body[0].folder + "/" + body[0].name)
+    res.sendStatus(404)
   })
-  //console.log(dirTree(req.query.path))
-  // res.sendFile(__dirname + "/files/" + req.params.path)
-})
-app.get("/filesystem/dirtree", passport.authenticate('bearer', { session: false }), function (req, res) {
-  //console.log(dirTree(req.query.path))
-  res.send(dirTree(req.query.path))
-})
+});
 
-app.get("/filesystem/homedir", passport.authenticate('bearer', { session: false }), function (req, res) {
-  if (process.platform == "win32") res.send(os.homedir() + "\\desktop")
-  else res.send(os.homedir())
-})
+//-----------------------------------------------------------------------------
+// filesytem : download
+//-----------------------------------------------------------------------------
+app.get('/filesystem/api/download', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  if (!req.query.folder || !req.query.basename) return res.sendStatus(400)
+  request({
+    url: "http://127.0.0.1/mongodb/api/filesystem/files",
+    method: "GET",
+    headers: { "Authorization": "Bearer " + req.user.token },
+    qs: req.query,
+    json: true
+  }, function (err, res2, body) {
+    if (err) res.send(err)
+    if (body.length === 1) res.download(__dirname + "/files/" + body[0].folder + "/" + body[0].name, body[0].basename)
+    res.sendStatus(404)
+  })
+});
 
 //-----------------------------------------------------------------------------
 // filesytem : upload
 //-----------------------------------------------------------------------------
 var mkdirp = require("mkdirp")
+var fs = require("fs")
+var path = require("path")
+var filesize = require("filesize")
 app.use(require('express-fileupload')())
-app.post('/filesystem/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  if (!req.files) return res.sendStatus(400)
   mkdirp("files/" + req.body.fileFolder, function (err) {
     if (err) res.send(err)
-    else {
-      // console.log(req.body.fileOwners.split(","))
-      // console.log(req.body.fileUsers.split(","))
-      console.log(file)
-      var file = {
-        owners: req.body.owners ? req.body.owners.split(",") : [],
-        users: req.body.users ? req.body.users.split(",") : [],
-        name: String(Date.now()) + "-" + req.files.upload.name,
-        folder: req.body.folder
-      }
-      console.log(file)
+    var file = {
+      owners: req.body.owners ? req.body.owners.split(",") : [],
+      users: req.body.users ? req.body.users.split(",") : [],
+      basename: req.files.upload.name,
+      name: String(Date.now()) + "-" + req.files.upload.name,
+      folder: req.body.folder
+    }
+    req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
+      if (err) res.send(err);
+      file.size = fs.statSync(path.join(__dirname,"files/",file.folder,file.name)).size
+      file.sizeStr = filesize(file.size)
       request({
         url: "http://127.0.0.1/mongodb/api/filesystem/files",
         method: "POST",
@@ -150,19 +163,29 @@ app.post('/filesystem/upload', require("connect-ensure-login").ensureLoggedIn(),
         body: file,
         json: true
       }, function (err, res2, body) {
-        console.log(body)
         if (err) res.send(err)
-        else {
-          if (!req.files) return res.status(400).send('No files were uploaded.');
-          req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
-            if (err) res.send({ "status": 'error', "error": err });
-            else res.send({ "status": 'server' });
-          });
-        }
+        res.status(201).send({status:"server"})
       })
-    }
+    });
   })
 });
+//-----------------------------------------------------------------------------
+// filesytem : dirtree
+//-----------------------------------------------------------------------------
+const dirTree = require('directory-tree');
+app.get("/filesystem/api/dirtree", passport.authenticate('bearer', { session: false }), function (req, res) {
+  if (req.user.username == "admin") res.send(dirTree(req.query.path))
+  else { req.logout(); res.send(403); }
+})
+
+//-----------------------------------------------------------------------------
+// filesytem : homedir
+//-----------------------------------------------------------------------------
+var os = require("os")
+app.get("/filesystem/api/homedir", passport.authenticate('bearer', { session: false }), function (req, res) {
+  if (req.user.username == "admin") res.send(os.homedir() + "\\desktop")
+  else { req.logout(); res.send(403); }
+})
 
 
 app.listen(3001, function () {
