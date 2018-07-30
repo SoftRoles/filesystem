@@ -101,41 +101,9 @@ app.get('/filesystem/test/upload', require('connect-ensure-login').ensureLoggedI
 //==================================================================================================
 // Filesystem
 //==================================================================================================
-app.get('/filesystem/api', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
-  if (!req.query.folder || !req.query.basename) return res.sendStatus(400)
-  request({
-    url: "http://127.0.0.1/mongodb/api/filesystem/files",
-    method: "GET",
-    headers: { "Authorization": "Bearer " + req.user.token },
-    qs: req.query,
-    json: true
-  }, function (err, res2, body) {
-    if (err) res.send(err)
-    if (body.length === 1) res.sendFile(__dirname + "/files/" + body[0].folder + "/" + body[0].name)
-    res.sendStatus(404)
-  })
-});
 
 //-----------------------------------------------------------------------------
-// filesytem : download
-//-----------------------------------------------------------------------------
-app.get('/filesystem/api/download', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
-  if (!req.query.folder || !req.query.basename) return res.sendStatus(400)
-  request({
-    url: "http://127.0.0.1/mongodb/api/filesystem/files",
-    method: "GET",
-    headers: { "Authorization": "Bearer " + req.user.token },
-    qs: req.query,
-    json: true
-  }, function (err, res2, body) {
-    if (err) res.send(err)
-    if (body.length === 1) res.download(__dirname + "/files/" + body[0].folder + "/" + body[0].name, body[0].basename)
-    res.sendStatus(404)
-  })
-});
-
-//-----------------------------------------------------------------------------
-// filesytem : upload
+// filesytem : files
 //-----------------------------------------------------------------------------
 var mkdirp = require("mkdirp")
 var fs = require("fs")
@@ -143,7 +111,21 @@ var path = require("path")
 var filesize = require("filesize")
 var moment = require("moment")
 app.use(require('express-fileupload')())
-app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+
+app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  request({
+    url: "http://127.0.0.1/mongodb/api/filesystem/files",
+    method: "GET",
+    headers: { "Authorization": "Bearer " + req.user.token },
+    qs: req.query,
+    json: true
+  }, function (err, res2, body) {
+    if (err) res.send(err)
+    res.send(body)
+  })
+});
+
+app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   if (!req.files) return res.sendStatus(400)
   mkdirp("files/" + req.body.folder, function (err) {
     if (err) res.send(err)
@@ -160,7 +142,7 @@ app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedI
     // console.log(req.body.mdate)
     req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
       if (err) res.send(err);
-      file.size = fs.statSync(path.join(__dirname,"files/",file.folder,file.name)).size
+      file.size = fs.statSync(path.join(__dirname, "files/", file.folder, file.name)).size
       file.sizeStr = filesize(file.size)
       request({
         url: "http://127.0.0.1/mongodb/api/filesystem/files",
@@ -170,9 +152,25 @@ app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedI
         json: true
       }, function (err, res2, body) {
         if (err) res.send(err)
-        res.status(201).send({status:"server"})
+        res.status(201).send({ status: "server" })
       })
     });
+  })
+});
+
+app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
+  request({
+    url: "http://127.0.0.1/mongodb/api/filesystem/files/" + req.params.id,
+    method: "GET",
+    headers: { "Authorization": "Bearer " + req.user.token },
+    json: true
+  }, function (err, res2, body) {
+    if (err) res.send(err)
+    if("name" in body){
+      if (req.query.download) res.download(__dirname + "/files/" + body.folder + "/" + body.name, body.basename)
+      else res.sendFile(__dirname + "/files/" + body.folder + "/" + body.name)
+    }
+    else res.send({})
   })
 });
 //-----------------------------------------------------------------------------
