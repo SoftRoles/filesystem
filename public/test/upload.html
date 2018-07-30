@@ -2,58 +2,90 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3001-filesystem</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>3001-filesystem</title>
 
-    <link rel="stylesheet" href="/filesystem/bower_components/webix/codebase/skins/compact.css" type="text/css">
-    <script src="/filesystem/bower_components/webix/codebase/webix.js"></script>
+  <link rel="stylesheet" href="/filesystem/bower_components/webix/codebase/skins/compact.css" type="text/css">
+  <script src="/filesystem/bower_components/webix/codebase/webix.js"></script>
 </head>
 
 <body>
 
-    <div id="upload"></div>
-    <div id="uploadList"></div>
-    <script>
+  <div id="upload"></div>
+  <div id="uploadList"></div>
+  <script>
 
-        // get user
-        // var user = ""
-        // webix.ajax().get("/user", function (t, d, x) {
-        //     user = d.json()
-        //     // user.users = ["guest"]
-        //     // user.folder = "test/upload"
-        //     $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload" })
-        // })
+    // get user
+    // var user = ""
+    // webix.ajax().get("/user", function (t, d, x) {
+    //     user = d.json()
+    //     // user.users = ["guest"]
+    //     // user.folder = "test/upload"
+    //     $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload" })
+    // })
 
-        webix.ready(function () {
+    webix.ready(function () {
 
-            webix.ui({
-                view: "uploader",
-                id: "uploadx",
-                name: "file",
-                container: "upload",
-                value: "Upload file",
-                link: "mylist",
-                upload: "/filesystem/api/upload",
-                formData: { users: ["guest"], folder: "test/upload" },
-                on: {
-                    "onUploadComplete": function (response) {
-                        webix.message("Done");
-                        console.log(response)
-                    }
-                }
-            })
-            webix.ui({
-                view: "list",
-                id: "mylist",
-                type: "uploader",
-                autoheight: true,
-                borderless: true
-            })
+      webix.ui({
+        view: "uploader",
+        id: "uploadx",
+        name: "file",
+        container: "upload",
+        value: "Upload file",
+        link: "mylist",
+        upload: "/filesystem/api/upload",
+        formData: { users: ["guest"], folder: "test/upload" },
+        on: {
+          "onUploadComplete": function (response) {
+            webix.message("Done");
+            console.log(response)
+          }
+        }
+      })
+      webix.ui({
+        view: "list",
+        id: "mylist",
+        type: "uploader",
+        autoheight: true,
+        borderless: true
+      })
+      webix.ui({
+        view: "text",
+        id: "console"
+      })
 
-        })
-    </script>
+    })
+
+    //   (function () {
+    //     "use strict";
+
+    //     var baseLogFunction = console.log;
+    //     console.log = function () {
+    //       baseLogFunction.apply(console, arguments);
+
+    //       var args = Array.prototype.slice.call(arguments);
+    //       for (var i = 0; i < args.length; i++) {
+    //         var node = createLogNode(args[i]);
+    //         document.querySelector("#mylog").appendChild(node);
+    //       }
+
+    //     }
+
+    //     window.onerror = function (message, url, linenumber) {
+    //       console.log("JavaScript error: " + message + " on line " +
+    //         linenumber + " for " + url);
+    //     };
+
+    //   })();
+
+    // console.log("test");
+    // console.log("test");
+    // console.log("the error below is intentional to test error handling");
+    // throw new Error("Test Error");
+
+  </script>
 </body>
 
 </html>
