@@ -143,7 +143,7 @@ var filesize = require("filesize")
 app.use(require('express-fileupload')())
 app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   if (!req.files) return res.sendStatus(400)
-  mkdirp("files/" + req.body.fileFolder, function (err) {
+  mkdirp("files/" + req.body.folder, function (err) {
     if (err) res.send(err)
     var file = {
       owners: req.body.owners ? req.body.owners.split(",") : [],
