@@ -9,22 +9,14 @@
 
   <link rel="stylesheet" href="/filesystem/bower_components/webix/codebase/skins/compact.css" type="text/css">
   <script src="/filesystem/bower_components/webix/codebase/webix.js"></script>
+
+  <script src="/filesystem/js/console-log-viewer.js?align=bottom"></script>
+  <!-- <script src="https://markknol.github.io/console-log-viewer/console-log-viewer.js"></script> -->
 </head>
 
 <body>
 
-  <div id="upload"></div>
-  <div id="uploadList"></div>
   <script>
-
-    // get user
-    // var user = ""
-    // webix.ajax().get("/user", function (t, d, x) {
-    //     user = d.json()
-    //     // user.users = ["guest"]
-    //     // user.folder = "test/upload"
-    //     $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload" })
-    // })
 
     webix.ready(function () {
 
@@ -32,7 +24,7 @@
         view: "uploader",
         id: "uploadx",
         name: "file",
-        container: "upload",
+        // container: "upload",
         value: "Upload file",
         link: "mylist",
         upload: "/filesystem/api/upload",
@@ -44,6 +36,8 @@
           }
         }
       })
+      document.getElementsByClassName("webix_hidden_upload")[0].style.display = "none";
+      
       webix.ui({
         view: "list",
         id: "mylist",
@@ -56,34 +50,15 @@
         id: "console"
       })
 
-    })
+    });
 
-    //   (function () {
-    //     "use strict";
+    setTimeout(function () {
+      console.log("test");
+      console.log("test");
+      console.log("the error below is intentional to test error handling");
+      throw new Error("Test Error");
+    }, 0000)
 
-    //     var baseLogFunction = console.log;
-    //     console.log = function () {
-    //       baseLogFunction.apply(console, arguments);
-
-    //       var args = Array.prototype.slice.call(arguments);
-    //       for (var i = 0; i < args.length; i++) {
-    //         var node = createLogNode(args[i]);
-    //         document.querySelector("#mylog").appendChild(node);
-    //       }
-
-    //     }
-
-    //     window.onerror = function (message, url, linenumber) {
-    //       console.log("JavaScript error: " + message + " on line " +
-    //         linenumber + " for " + url);
-    //     };
-
-    //   })();
-
-    // console.log("test");
-    // console.log("test");
-    // console.log("the error below is intentional to test error handling");
-    // throw new Error("Test Error");
 
   </script>
 </body>

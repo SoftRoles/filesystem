@@ -44,6 +44,7 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require("cors")())
 app.use("/filesystem/bower_components", express.static(__dirname + "/public/bower_components"))
+app.use("/filesystem/js", express.static(__dirname + "/public/js"))
 
 
 //==================================================================================================
