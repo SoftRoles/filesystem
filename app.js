@@ -141,18 +141,23 @@ var mkdirp = require("mkdirp")
 var fs = require("fs")
 var path = require("path")
 var filesize = require("filesize")
+var moment = require("moment")
 app.use(require('express-fileupload')())
 app.post('/filesystem/api/upload', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   if (!req.files) return res.sendStatus(400)
   mkdirp("files/" + req.body.folder, function (err) {
     if (err) res.send(err)
+    var dt = new Date()
     var file = {
       owners: req.body.owners ? req.body.owners.split(",") : [],
       users: req.body.users ? req.body.users.split(",") : [],
       basename: req.files.upload.name,
       name: String(Date.now()) + "-" + req.files.upload.name,
-      folder: req.body.folder
+      folder: req.body.folder,
+      mate: req.body.mdate,
+      date: moment().format("YYYY.MM.DD HH:mm:ss")
     }
+    // console.log(req.body.mdate)
     req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
       if (err) res.send(err);
       file.size = fs.statSync(path.join(__dirname,"files/",file.folder,file.name)).size

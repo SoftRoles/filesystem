@@ -29,35 +29,48 @@
         link: "mylist",
         upload: "/filesystem/api/upload",
         formData: { users: ["guest"], folder: "test/upload" },
+        autosend: false,
         on: {
-          "onUploadComplete": function (response) {
-            webix.message("Done");
-            console.log(response)
-          }
+          // "onAfterFileAdd": function (file) {
+          //   console.log(file)
+          // },
+          // "onUploadComplete": function (response) {
+          //   webix.message("Done");
+          //   console.log(response)
+          // },
+          // "onFileUpload": function (file, response) {
+          //   console.log(file)
+          // }
         }
       })
       document.getElementsByClassName("webix_hidden_upload")[0].style.display = "none";
-      
+
       webix.ui({
         view: "list",
         id: "mylist",
         type: "uploader",
+        select: true,
         autoheight: true,
         borderless: true
       })
       webix.ui({
-        view: "text",
-        id: "console"
+        view: "button",
+        click:function(){
+          $$("mylist").find({}).forEach(function(item){
+            $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload", mdate:$$("mylist").getItem(item.id).file.lastModifiedDate })
+            $$("uploadx").send(item.id)
+          })
+        }
       })
 
     });
 
-    setTimeout(function () {
-      console.log("test");
-      console.log("test");
-      console.log("the error below is intentional to test error handling");
-      throw new Error("Test Error");
-    }, 0000)
+    // setTimeout(function () {
+    //   console.log("test");
+    //   console.log("test");
+    //   console.log("the error below is intentional to test error handling");
+    //   throw new Error("Test Error");
+    // }, 1000)
 
 
   </script>
