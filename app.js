@@ -121,7 +121,7 @@ app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(
     json: true
   }, function (err, res2, body) {
     if (err) res.send(err)
-    res.send(body)
+    res.send(JSON.parse(body))
   })
 });
 
