@@ -118,7 +118,6 @@ app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(
     method: "GET",
     headers: { "Authorization": "Bearer " + req.user.token },
     qs: req.query,
-    json: true
   }, function (err, res2, body) {
     if (err) res.send(err)
     res.send(JSON.parse(body))
