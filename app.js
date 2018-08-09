@@ -113,15 +113,14 @@ var moment = require("moment")
 app.use(require('express-fileupload')())
 
 app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
-  request({
-    url: "http://127.0.0.1/mongodb/api/filesystem/files",
-    method: "GET",
-    headers: { "Authorization": "Bearer " + req.user.token },
-    qs: req.query,
-  }, function (err, res2, body) {
-    if (err) res.send(err)
-    res.send(JSON.parse(body))
-  })
+  req.query.users = req.user.username
+  mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
+    db.collection("files").find(req.query).toArray(function (err, docs) {
+      if (err) res.send({ error: err })
+      else res.send(docs)
+      db.close();
+    });
+  });
 });
 
 app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
@@ -143,34 +142,35 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
       if (err) res.send(err);
       file.size = fs.statSync(path.join(__dirname, "files/", file.folder, file.name)).size
       file.sizeStr = filesize(file.size)
-      request({
-        url: "http://127.0.0.1/mongodb/api/filesystem/files",
-        method: "POST",
-        headers: { "Authorization": "Bearer " + req.user.token },
-        body: file,
-        json: true
-      }, function (err, res2, body) {
-        if (err) res.send(err)
-        res.status(201).send({ status: "server" })
-      })
+
+      file.users.push(req.user.username)
+      file.owners.push(req.user.username)
+      if (file.users.indexOf("admin") === -1) { file.users.push("admin") }
+      if (file.owners.indexOf("admin") === -1) { file.owners.push("admin") }
+      mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
+        db.collection("files").insertOne(file, function (err, r) {
+          if (err) res.send({ error: err })
+          else res.send(Object.assign({}, r.result, { insertedId: r.insertedId }, file))
+          db.close()
+        })
+      });
     });
   })
 });
 
 app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
-  request({
-    url: "http://127.0.0.1/mongodb/api/filesystem/files/" + req.params.id,
-    method: "GET",
-    headers: { "Authorization": "Bearer " + req.user.token },
-    json: true
-  }, function (err, res2, body) {
-    if (err) res.send(err)
-    if("name" in body){
-      if (req.query.download) res.download(__dirname + "/files/" + body.folder + "/" + body.name, body.basename)
-      else res.sendFile(__dirname + "/files/" + body.folder + "/" + body.name)
-    }
-    else res.send({})
-  })
+  var query = { users: req.user.username }
+  query._id = mongoObjectId(req.params.id)
+  mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
+    db.collection("files").findOne(query, function (err, doc) {
+      if (err) res.send({ error: err })
+      else {
+        if (req.query.download) res.download(__dirname + "/files/" + doc.folder + "/" + doc.name, doc.basename)
+        else res.sendFile(__dirname + "/files/" + doc.folder + "/" + doc.name)
+      }
+      db.close();
+    });
+  });
 });
 //-----------------------------------------------------------------------------
 // filesytem : dirtree
