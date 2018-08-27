@@ -107,6 +107,7 @@ app.get('/filesystem/test/upload', require('connect-ensure-login').ensureLoggedI
 //-----------------------------------------------------------------------------
 var mkdirp = require("mkdirp")
 var fs = require("fs")
+var os = require('os');
 var path = require("path")
 var filesize = require("filesize")
 var moment = require("moment")
@@ -125,7 +126,7 @@ app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(
 
 app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   if (!req.files) return res.sendStatus(400)
-  mkdirp("files/" + req.body.folder, function (err) {
+  mkdirp(path.join(os.homedir(), "desktop/Servisler/3001-filesystem-files", req.body.folder), function (err) {
     if (err) res.send(err)
     var dt = new Date()
     var file = {
@@ -138,9 +139,9 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
       date: moment().format("YYYY.MM.DD HH:mm:ss")
     }
     // console.log(req.body.mdate)
-    req.files.upload.mv("files/" + file.folder + "/" + file.name, function (err) {
+    req.files.upload.mv(path.join(os.homedir(), "desktop/Servisler/3001-filesystem-files", file.folder, file.name), function (err) {
       if (err) res.send(err);
-      file.size = fs.statSync(path.join(__dirname, "files/", file.folder, file.name)).size
+      file.size = fs.statSync(path.join(os.homedir(), "desktop/Servisler/3001-filesystem-files", file.folder, file.name)).size
       file.sizeStr = filesize(file.size)
 
       file.users.push(req.user.username)
@@ -165,8 +166,8 @@ app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLogge
     db.collection("files").findOne(query, function (err, doc) {
       if (err) res.send({ error: err })
       else {
-        if (req.query.download) res.download(__dirname + "/files/" + doc.folder + "/" + doc.name, doc.basename)
-        else res.sendFile(__dirname + "/files/" + doc.folder + "/" + doc.name)
+        if (req.query.download) res.download(path.join(os.homedir(), "desktop/Servisler/3001-filesystem-files", doc.folder, doc.name), doc.basename)
+        else res.sendFile(path.join(os.homedir(), "desktop/Servisler/3001-filesystem-files", doc.folder, doc.name))
       }
       db.close();
     });
