@@ -9,6 +9,7 @@ var session = require('express-session');
 var mongodbSessionStore = require('connect-mongodb-session')(session);
 
 var mongoClient = require("mongodb").MongoClient
+var mongoObjectId = require('mongodb').ObjectID;
 var mongodbUrl = "mongodb://127.0.0.1:27017"
 
 // Create a new Express application.
