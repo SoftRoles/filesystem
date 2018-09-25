@@ -48,20 +48,6 @@ app.use("/filesystem/bower_components", express.static(__dirname + "/public/bowe
 app.use("/filesystem/js", express.static(__dirname + "/public/js"))
 
 
-//==================================================================================================
-// Bearer Passport
-//==================================================================================================
-passport.use(new passStrategyBearer(function (token, cb) {
-  mongoClient.connect(mongodbUrl + "/auth", function (err, db) {
-    db.collection("users").findOne({ token: token }, function (err, user) {
-      if (err) return cb(err)
-      if (!user) { return cb(null, false); }
-      return cb(null, user);
-      db.close();
-    });
-  });
-}));
-
 // Configure Passport authenticated session persistence.
 //
 // In order to restore authentication state across HTTP requests, Passport needs
@@ -74,12 +60,12 @@ passport.serializeUser(function (user, cb) {
 });
 
 passport.deserializeUser(function (username, cb) {
-  mongoClient.connect(mongodbUrl + "/auth", function (err, db) {
-    db.collection("users").findOne({ username: username }, function (err, user) {
+  mongoClient.connect(mongodbUrl, { useNewUrlParser: true }, function (err, client) {
+    client.db("auth").collection("users").findOne({ username: username }, function (err, user) {
       if (err) return cb(err)
       if (!user) { return cb(null, false); }
       return cb(null, user);
-      db.close();
+      client.close();
     });
   });
 });
@@ -121,11 +107,11 @@ app.use(require('express-fileupload')())
 
 app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   req.query.users = req.user.username
-  mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
-    db.collection("files").find(req.query).toArray(function (err, docs) {
+  mongoClient.connect(mongodbUrl, function (err, client) {
+    client.db("filesystem").collection("files").find(req.query).toArray(function (err, docs) {
       if (err) res.send({ error: err })
       else res.send(docs)
-      db.close();
+      client.close();
     });
   });
 });
@@ -154,11 +140,11 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
       file.owners.push(req.user.username)
       if (file.users.indexOf("admin") === -1) { file.users.push("admin") }
       if (file.owners.indexOf("admin") === -1) { file.owners.push("admin") }
-      mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
-        db.collection("files").insertOne(file, function (err, r) {
+      mongoClient.connect(mongodbUrl, function (err, client) {
+        client.db("filesystem").collection("files").insertOne(file, function (err, r) {
           if (err) res.send({ error: err })
           else res.send(Object.assign({}, r.result, { insertedId: r.insertedId }, file))
-          db.close()
+          client.close()
         })
       });
     });
@@ -168,14 +154,14 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
 app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLoggedIn(), function (req, res) {
   var query = { users: req.user.username }
   query._id = mongoObjectId(req.params.id)
-  mongoClient.connect(mongodbUrl + "/filesystem", function (err, db) {
-    db.collection("files").findOne(query, function (err, doc) {
+  mongoClient.connect(mongodbUrl, function (err, client) {
+    client.db("filesystem").collection("files").findOne(query, function (err, doc) {
       if (err) res.send({ error: err })
       else {
         if (req.query.download) res.download(path.join(filesFolder, doc.folder, doc.name), doc.basename)
         else res.sendFile(path.join(filesFolder, doc.folder, doc.name))
       }
-      db.close();
+      client.close();
     });
   });
 });
