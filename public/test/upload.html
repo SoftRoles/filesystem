@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>3001-filesystem</title>
+
+  <link rel="stylesheet" href="/filesystem/bower_components/webix/codebase/skins/compact.css" type="text/css">
+  <script src="/filesystem/bower_components/webix/codebase/webix.js"></script>
+
+</head>
+
+<body>
+
+  <script>
+
+    webix.ready(function () {
+
+      webix.ui({
+        view: "uploader",
+        id: "uploadx",
+        name: "file",
+        value: "Upload file",
+        link: "mylist",
+        upload: "/filesystem/api/files",
+        formData: { users: ["guest"], folder: "test/upload" },
+        autosend: false,
+        on: {
+          "onAfterFileAdd": function (file) {
+            console.log(file)
+            this.define("formData", { users: ["guest"], folder: "test/upload", mdate: file.file.lastModifiedDate })
+            this.send(file.id)
+          },
+          // "onUploadComplete": function (response) {
+          //   webix.message("Done");
+          //   console.log(response)
+          // },
+          // "onFileUpload": function (file, response) {
+          //   console.log(file)
+          // }
+        }
+      })
+      document.getElementsByClassName("webix_hidden_upload")[0].style.display = "none";
+
+      webix.ui({
+        view: "list",
+        id: "mylist",
+        type: "uploader",
+        select: true,
+        autoheight: true,
+        borderless: true,
+
+      })
+      // webix.ui({
+      //   view: "button",
+      //   click: function () {
+      //     $$("mylist").find({}).forEach(function (item) {
+      //       $$("uploadx").define("formData", { users: ["guest"], folder: "test/upload", mdate: $$("mylist").getItem(item.id).file.lastModifiedDate })
+      //       $$("uploadx").send(item.id)
+      //     })
+      //   }
+      // })
+
+    });
+
+    // setTimeout(function () {
+    //   console.log("test");
+    //   console.log("test");
+    //   console.log("the error below is intentional to test error handling");
+    //   throw new Error("Test Error");
+    // }, 1000)
+
+
+  </script>
+</body>
+
+</html>

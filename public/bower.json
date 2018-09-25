@@ -1,0 +1,20 @@
+{
+  "name": "dirtree-test",
+  "homepage": "https://github.com/yigithsyn/3001-dirtree",
+  "authors": [
+    "Hüseyin Yiğit <yigit.hsyn@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "webix": "^5.2.0"
+  }
+}
