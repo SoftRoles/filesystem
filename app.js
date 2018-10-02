@@ -142,7 +142,6 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
             mongodb.db("filesystem").collection("files").insertOne(file, function(err, r) {
                 if (err) res.send({ error: err })
                 else res.send(Object.assign({}, r.result, { insertedId: r.insertedId }, file))
-                client.close()
             });
         });
     })
