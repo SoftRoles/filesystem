@@ -88,12 +88,12 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require("cors")())
 
-app.get('/filesystem', require('connect-ensure-login').ensureLoggedIn({ redirectTo: "/login?source=filesystem" }), function(req, res) {
+app.get('/filesystem', ensureLoggedIn({ redirectTo: "/login?source=filesystem" }), function(req, res) {
     if (req.user.username == "admin") res.sendFile(__dirname + '/public/index.html')
     else { req.logout(); res.send(403); }
 });
 
-app.get('/filesystem/test/upload', require('connect-ensure-login').ensureLoggedIn({ redirectTo: "/login?source=filesystem/test/upload" }), function(req, res) {
+app.get('/filesystem/test/upload', ensureLoggedIn({ redirectTo: "/login?source=filesystem/test/upload" }), function(req, res) {
     if (req.user.username == "admin") res.sendFile(__dirname + '/public/test/upload.html')
     else { req.logout(); res.send(403); }
 });
@@ -118,7 +118,7 @@ else filesFolder = path.join(os.homedir(), "Veriler/1001-files")
 
 app.use(require('express-fileupload')())
 
-app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
+app.get('/filesystem/api/files', ensureLoggedIn(), function(req, res) {
     req.query.users = req.user.username
     mongodb.db("filesystem").collection("files").find(req.query).toArray(function(err, docs) {
         if (err) res.send({ error: err })
@@ -126,7 +126,7 @@ app.get('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(
     });
 });
 
-app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
+app.post('/filesystem/api/files', ensureLoggedIn(), function(req, res) {
     if (!req.files) return res.sendStatus(400)
     mkdirp(path.join(filesFolder, req.body.folder), function(err) {
         if (err) res.send(err)
@@ -158,7 +158,7 @@ app.post('/filesystem/api/files', require("connect-ensure-login").ensureLoggedIn
     })
 });
 
-app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
+app.get('/filesystem/api/files/:id', ensureLoggedIn(), function(req, res) {
     var query = { users: req.user.username }
     query._id = mongoObjectId(req.params.id)
     mongodb.db("filesystem").collection("files").findOne(query, function(err, doc) {
@@ -173,7 +173,7 @@ app.get('/filesystem/api/files/:id', require("connect-ensure-login").ensureLogge
 // filesytem : dirtree
 //-----------------------------------------------------------------------------
 const dirTree = require('directory-tree');
-app.get("/filesystem/api/dirtree", passport.authenticate('bearer', { session: false }), function(req, res) {
+app.get("/filesystem/api/dirtree", ensureLoggedIn(), function(req, res) {
     if (req.user.username == "admin") res.send(dirTree(req.query.path))
     else { req.logout(); res.send(403); }
 })
@@ -182,7 +182,7 @@ app.get("/filesystem/api/dirtree", passport.authenticate('bearer', { session: fa
 // filesytem : homedir
 //-----------------------------------------------------------------------------
 var os = require("os")
-app.get("/filesystem/api/homedir", passport.authenticate('bearer', { session: false }), function(req, res) {
+app.get("/filesystem/api/homedir", ensureLoggedIn(), function(req, res) {
     if (req.user.username == "admin") res.send(os.homedir() + "\\desktop")
     else { req.logout(); res.send(403); }
 })
