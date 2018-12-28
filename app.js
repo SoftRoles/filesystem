@@ -32,7 +32,7 @@ function ensureLoggedIn(options) {
         });
       }
       else{
-        req.user = req.user || { username: "admin" }
+        req.user = req.user || { username: "local" }
         next()
       }
     }
@@ -180,6 +180,20 @@ app.get('/filesystem/api/files/:id', ensureLoggedIn(), function(req, res) {
         }
     });
 });
+//-----------------------------------------------------------------------------
+// filesytem : operations
+//-----------------------------------------------------------------------------
+var fs = require("fs")
+var path = require("path")
+app.get("/filesystem/api/mkdir", ensureLoggedIn(), function(req, res) {
+  if (req.user.username == "admin"){
+    fs.mkdir(path.join(filesFolder,req.query.path), function(err){
+      if(err) res.send({error: err})
+      else res.send({})
+    })
+  }
+})
+
 //-----------------------------------------------------------------------------
 // filesytem : dirtree
 //-----------------------------------------------------------------------------
