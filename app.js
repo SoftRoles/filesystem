@@ -125,9 +125,7 @@ var filesize = require("filesize")
 var moment = require("moment")
 var mongoObjectId = require('mongodb').ObjectID;
 
-var filesFolder = ""
-if (process.platform == "win32") filesFolder = path.join(os.homedir(), "desktop/Veriler/1001-files")
-else filesFolder = path.join(os.homedir(), "Veriler/1001-files")
+var filesFolder = path.join(os.homedir(), "datas/1001-files")
 
 app.use(require('express-fileupload')())
 
