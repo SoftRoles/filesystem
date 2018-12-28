@@ -32,7 +32,7 @@ function ensureLoggedIn(options) {
         });
       }
       else{
-        req.user = req.user || { username: "local" }
+        req.user = req.user || { username: "admin" }
         next()
       }
     }
@@ -185,8 +185,8 @@ app.get('/filesystem/api/files/:id', ensureLoggedIn(), function(req, res) {
 //-----------------------------------------------------------------------------
 const dirTree = require('directory-tree');
 app.get("/filesystem/api/dirtree", ensureLoggedIn(), function(req, res) {
-    if (req.user.username == "admin") res.send(dirTree(req.query.path))
-    else { req.logout(); res.send(403); }
+    if (req.user.username == "admin") res.send(dirTree(filesFolder))
+    else res.send(403);
 })
 
 //-----------------------------------------------------------------------------

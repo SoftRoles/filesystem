@@ -1,0 +1,7 @@
+##
+# Get storage directory tree
+GET http://127.0.0.1/filesystem/api/dirtree
+
+###
+# Get files
+GET http://127.0.0.1/filesystem/api/files?folder=test/upload
