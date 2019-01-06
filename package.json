@@ -15,6 +15,7 @@
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "directory-tree": "^2.0.0",
+    "ensureloggedin": "^1.0.0",
     "express": "^4.16.3",
     "express-fileupload": "^0.4.0",
     "express-session": "^1.15.6",
