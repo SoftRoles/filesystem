@@ -1,7 +1,6 @@
 ##
 # Get storage directory tree
 GET http://127.0.0.1/filesystem/api/dirtree
-Authorization: Bearer 5c25c920b27feecbc39bd668
 
 ###
 # Get files

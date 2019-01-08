@@ -1,5 +1,5 @@
 {
-  "name": "3001-dirtree",
+  "name": "filesystem",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -9,10 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@softroles/ensure-login": "^2.0.0",
     "body-parser": "^1.18.2",
-    "connect-ensure-login": "^0.1.1",
     "connect-mongodb-session": "^2.0.3",
-    "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "directory-tree": "^2.0.0",
     "express": "^4.16.3",
@@ -23,9 +22,6 @@
     "moment": "^2.22.2",
     "mongodb": "^3.1.6",
     "morgan": "^1.9.0",
-    "passport": "^0.4.0",
-    "passport-http-bearer": "^1.0.1",
-    "passport-local": "^1.0.0",
-    "request": "^2.87.0"
+    "passport": "^0.4.0"
   }
 }
