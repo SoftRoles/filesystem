@@ -1,18 +1,8 @@
 ##
 # Get storage directory tree
-GET http://127.0.0.1/filesystem/api/dirtree
+GET http://127.0.0.1:3001/filesystem/api/dirtree
 
 ###
 # Get files
 GET http://127.0.0.1/filesystem/api/files
-Authorization: Bearer 5c25c920b27feecbc39bd668
-
-###
-# Create directory
-GET http://127.0.0.1/filesystem/api/mkdir?path=test2
-Authorization: Bearer 5c25c920b27feecbc39bd668
-
-###
-# Create directory
-GET http://127.0.0.1/filesystem/api/mkdir?path=test2/any
 Authorization: Bearer 5c25c920b27feecbc39bd668
