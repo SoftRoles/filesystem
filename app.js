@@ -1,9 +1,22 @@
+//=============================================================================
+// http server
+//=============================================================================
 var express = require('express');
 var app = express();
 
-//=====================================
-// database
-//=====================================
+//-------------------------------------
+// common middlewares
+//-------------------------------------
+app.use(require('@softroles/authorize-local-user')())
+app.use(require('morgan')('tiny'));
+app.use(require('body-parser').json())
+app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require("cors")())
+
+
+//=============================================================================
+// api
+//=============================================================================
 var assert = require('assert');
 
 var mongodb;
@@ -13,21 +26,6 @@ mongoClient.connect(mongodbUrl, { poolSize: 10, useNewUrlParser: true }, functio
   assert.equal(null, err);
   mongodb = client;
 });
-
-//=====================================
-// common middlewares
-//=====================================
-app.use(require('@softroles/authorize-local-user')())
-app.use(require('morgan')('tiny'));
-app.use(require('body-parser').json())
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require("cors")())
-
-
-
-//=============================================================================
-// api
-//=============================================================================
 
 //-------------------------------------
 // files
@@ -40,7 +38,7 @@ var filesize = require("filesize")
 var moment = require("moment")
 var mongoObjectId = require('mongodb').ObjectID;
 
-var filesFolder = path.normalize(path.join(__dirname,"../../Datas/files"))
+var filesFolder = path.normalize(path.join(__dirname, "../../Datas/files"))
 
 app.use(require('express-fileupload')())
 
@@ -105,7 +103,24 @@ app.get("/filesystem/api/dirtree", function (req, res) {
   else res.send(403);
 })
 
-app.listen(3001, function () {
-  console.log("Service running on http://127.0.0.1:3001")
+//=============================================================================
+// start service and register
+//=============================================================================
+const regedit = require('regedit')
+const findFreePort = require('find-free-port')
+var path = require('path')
+const serviceName = path.basename(__dirname).toUpperCase()
+findFreePort(3000, function (err, port) {
+  regedit.putValue({
+    'HKCU\\Environment': {
+      ['SOFTROLES_SERVICE_' + serviceName + '_PORT']: {
+        value: String(port),
+        type: 'REG_SZ'
+      }
+    }
+  }, function (err) {
+    app.listen(Number(port), function () {
+      console.log("Service running on http://127.0.0.1:" + port)
+    })
+  })
 })
-
