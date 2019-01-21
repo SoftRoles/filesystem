@@ -1,4 +1,19 @@
 //=============================================================================
+// requirements
+//=============================================================================
+var assert = require('assert')
+
+//-------------------------------------
+// database service
+//-------------------------------------
+var request = require('request')
+databaseApi = 'http://127.0.0.1/database/api'
+request.get(databaseApi, function (err, res, body) {
+  assert.equal(err, null, 'Could not connected to database service')
+  // console.log(res)
+})
+
+//=============================================================================
 // http server
 //=============================================================================
 var express = require('express');
@@ -17,15 +32,6 @@ app.use(require("cors")())
 //=============================================================================
 // api
 //=============================================================================
-var assert = require('assert');
-
-var mongodb;
-var mongoClient = require("mongodb").MongoClient
-var mongodbUrl = "mongodb://127.0.0.1:27017"
-mongoClient.connect(mongodbUrl, { poolSize: 10, useNewUrlParser: true }, function (err, client) {
-  assert.equal(null, err);
-  mongodb = client;
-});
 
 //-------------------------------------
 // files
