@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@softroles/authorize-local-user": "^1.2.0",
+    "@softroles/user-env-variable": "^1.1.0",
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "directory-tree": "^2.0.0",
@@ -21,7 +22,6 @@
     "moment": "^2.22.2",
     "mongodb": "^3.1.6",
     "morgan": "^1.9.0",
-    "regedit": "^3.0.2",
     "request": "^2.88.0"
   }
 }

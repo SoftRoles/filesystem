@@ -1,19 +1,4 @@
 //=============================================================================
-// requirements
-//=============================================================================
-var assert = require('assert')
-
-//-------------------------------------
-// database service
-//-------------------------------------
-var request = require('request')
-databaseApi = 'http://127.0.0.1/database/api'
-request.get(databaseApi, function (err, res, body) {
-  assert.equal(err, null, 'Could not connected to database service')
-  // console.log(res)
-})
-
-//=============================================================================
 // http server
 //=============================================================================
 var express = require('express');
@@ -110,23 +95,25 @@ app.get("/filesystem/api/dirtree", function (req, res) {
 })
 
 //=============================================================================
-// start service and register
+// start and register service
 //=============================================================================
-const regedit = require('regedit')
-const findFreePort = require('find-free-port')
-var path = require('path')
-const serviceName = path.basename(__dirname).toUpperCase()
+var serviceName = path.basename(__dirname).toUpperCase()
+var findFreePort = require('find-free-port')
+var userEnvVariable = require('@softroles/user-env-variable')
+var assert = require('assert')
 findFreePort(3000, function (err, port) {
-  regedit.putValue({
-    'HKCU\\Environment': {
-      ['SOFTROLES_SERVICE_' + serviceName + '_PORT']: {
-        value: String(port),
-        type: 'REG_SZ'
-      }
+  assert.equal(err, null, 'Could not find a free tcp port.')
+  app.listen(Number(port), function () {
+    console.log("Service running on http://127.0.0.1:" + port)
+    var registers = {
+      ['SOFTROLES_SERVICE_' + serviceName + '_PORT']: port
     }
-  }, function (err) {
-    app.listen(Number(port), function () {
-      console.log("Service running on http://127.0.0.1:" + port)
-    })
+    console.log("Service is registered with following variables:")
+    for(reg in registers){
+      console.log('\t - SOFTROLES_SERVICE_' + serviceName + '_PORT', '=', port)
+      userEnvVariable.set('SOFTROLES_SERVICE_' + serviceName + '_PORT', port, function (err) {
+        assert.equal(err, null, 'Could not register service.')
+      })
+    }
   })
 })
