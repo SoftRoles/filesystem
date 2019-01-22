@@ -104,15 +104,15 @@ var assert = require('assert')
 findFreePort(3000, function (err, port) {
   assert.equal(err, null, 'Could not find a free tcp port.')
   app.listen(Number(port), function () {
-    console.log("Service running on http://127.0.0.1:" + port)
     var registers = {
       ['SOFTROLES_SERVICE_' + serviceName + '_PORT']: port
     }
     console.log("Service is registered with following variables:")
-    for(reg in registers){
+    for (reg in registers) {
       console.log('\t - SOFTROLES_SERVICE_' + serviceName + '_PORT', '=', port)
       userEnvVariable.set('SOFTROLES_SERVICE_' + serviceName + '_PORT', port, function (err) {
         assert.equal(err, null, 'Could not register service.')
+        console.log("Service running on http://127.0.0.1:" + port)
       })
     }
   })
