@@ -1,11 +1,11 @@
 ##
 # get storage directory tree
-GET http://127.0.0.1:3001/filesystem/api/dirtree
+GET http://127.0.0.1:3001/filesystem/api/v1/dirtree
 
 ###
 # get file list
-GET http://127.0.0.1:3001/filesystem/api/files
+GET http://127.0.0.1:3001/filesystem/api/v1/files
 
 ###
 # get file by id
-GET http://127.0.0.1:3001/filesystem/api/files/5ba1ea2facc81b04814deb24
+GET http://127.0.0.1:3001/filesystem/api/v1/files/5ba1ea2facc81b04814deb24

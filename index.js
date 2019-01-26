@@ -1,8 +1,42 @@
 //=============================================================================
 // http server
 //=============================================================================
-var express = require('express');
-var app = express();
+const express = require('express');
+const argparse = require('argparse').ArgumentParser
+const mkdirp = require("mkdirp")
+const fs = require("fs")
+const path = require("path")
+const filesize = require("filesize")
+const moment = require("moment")
+const assert = require('assert')
+const dirTree = require('directory-tree');
+
+//-------------------------------------
+// arguments
+//-------------------------------------
+const argParser = new argparse({
+  addHelp: true,
+  description: 'Filesystem service'
+})
+argParser.addArgument(['-p', '--port'], { help: 'Listening port', defaultValue: '3001' })
+const args = argParser.parseArgs()
+
+//-------------------------------------
+// mongodb
+//-------------------------------------
+let mongodb;
+const mongoClient = require("mongodb").MongoClient
+const mongoObjectId = require("mongodb").ObjectID
+const mongodbUrl = "mongodb://127.0.0.1:27017"
+mongoClient.connect(mongodbUrl, { poolSize: 10, useNewUrlParser: true }, function (err, client) {
+  assert.equal(null, err);
+  mongodb = client;
+});
+
+//=============================================================================
+// http server
+//=============================================================================
+const app = express();
 
 //-------------------------------------
 // common middlewares
@@ -13,27 +47,22 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require("cors")())
 
+//-------------------------------------
+// fileupload middlewares
+//-------------------------------------
+app.use(require('express-fileupload')())
+
 
 //=============================================================================
-// api
+// api v1
 //=============================================================================
 
 //-------------------------------------
 // files
 //-------------------------------------
-var mkdirp = require("mkdirp")
-var fs = require("fs")
-var os = require('os');
-var path = require("path")
-var filesize = require("filesize")
-var moment = require("moment")
-var mongoObjectId = require('mongodb').ObjectID;
+const filesFolder = path.normalize(path.join(__dirname,"../../Datas/files"))
 
-var filesFolder = path.normalize(path.join(__dirname, "../../Datas/files"))
-
-app.use(require('express-fileupload')())
-
-app.get('/filesystem/api/files', function (req, res) {
+app.get('/filesystem/api/v1/files', function (req, res) {
   req.query.users = req.user.username
   mongodb.db("filesystem").collection("files").find(req.query).toArray(function (err, docs) {
     if (err) res.send({ error: err })
@@ -41,12 +70,11 @@ app.get('/filesystem/api/files', function (req, res) {
   });
 });
 
-app.post('/filesystem/api/files', function (req, res) {
+app.post('/filesystem/api/v1/files', function (req, res) {
   if (!req.files) return res.sendStatus(400)
   mkdirp(path.join(filesFolder, req.body.folder), function (err) {
     if (err) res.send(err)
-    var dt = new Date()
-    var file = {
+    let file = {
       owners: req.body.owners ? req.body.owners.split(",") : [],
       users: req.body.users ? req.body.users.split(",") : [],
       basename: req.files.upload.name,
@@ -55,12 +83,10 @@ app.post('/filesystem/api/files', function (req, res) {
       mate: req.body.mdate,
       date: moment().format("YYYY.MM.DD HH:mm:ss")
     }
-    // console.log(req.body.mdate)
     req.files.upload.mv(path.join(filesFolder, file.folder, file.name), function (err) {
       if (err) res.send(err);
       file.size = fs.statSync(path.join(filesFolder, file.folder, file.name)).size
       file.sizeStr = filesize(file.size)
-
       file.users.push(req.user.username)
       file.owners.push(req.user.username)
       if (file.users.indexOf("admin") === -1) { file.users.push("admin") }
@@ -73,8 +99,8 @@ app.post('/filesystem/api/files', function (req, res) {
   })
 });
 
-app.get('/filesystem/api/files/:id', function (req, res) {
-  var query = { users: req.user.username }
+app.get('/filesystem/api/v1/files/:id', function (req, res) {
+  let query = { users: req.user.username }
   query._id = mongoObjectId(req.params.id)
   mongodb.db("filesystem").collection("files").findOne(query, function (err, doc) {
     if (err) res.send({ error: err })
@@ -88,32 +114,14 @@ app.get('/filesystem/api/files/:id', function (req, res) {
 //-------------------------------------
 // directory tree
 //-------------------------------------
-const dirTree = require('directory-tree');
-app.get("/filesystem/api/dirtree", function (req, res) {
+app.get("/filesystem/api/v1/dirtree", function (req, res) {
   if (req.user.username == "admin") res.send(dirTree(filesFolder))
   else res.send(403);
 })
 
 //=============================================================================
-// start and register service
+// start service
 //=============================================================================
-var serviceName = path.basename(__dirname).toUpperCase()
-var findFreePort = require('find-free-port')
-var userEnvVariable = require('@softroles/user-env-variable')
-var assert = require('assert')
-findFreePort(3000, function (err, port) {
-  assert.equal(err, null, 'Could not find a free tcp port.')
-  app.listen(Number(port), function () {
-    var registers = {
-      ['SOFTROLES_SERVICE_' + serviceName + '_PORT']: port
-    }
-    console.log("Service is registered with following variables:")
-    for (reg in registers) {
-      console.log('\t - SOFTROLES_SERVICE_' + serviceName + '_PORT', '=', port)
-      userEnvVariable.set('SOFTROLES_SERVICE_' + serviceName + '_PORT', port, function (err) {
-        assert.equal(err, null, 'Could not register service.')
-        console.log("Service running on http://127.0.0.1:" + port)
-      })
-    }
-  })
+app.listen(Number(args.port), function () {
+  console.log(`Service running on http://127.0.0.1:${args.port}`)
 })
