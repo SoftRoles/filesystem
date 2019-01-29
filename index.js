@@ -3,6 +3,9 @@
 //=============================================================================
 const express = require('express');
 const argparse = require('argparse').ArgumentParser
+const session = require('express-session');
+const mongodbSessionStore = require('connect-mongodb-session')(session);
+const passport = require('passport');
 const mkdirp = require("mkdirp")
 const fs = require("fs")
 const path = require("path")
@@ -39,9 +42,62 @@ mongoClient.connect(mongodbUrl, { poolSize: 10, useNewUrlParser: true }, functio
 const app = express();
 
 //-------------------------------------
+// session store
+//-------------------------------------
+var store = new mongodbSessionStore({
+  uri: mongodbUrl,
+  databaseName: 'auth',
+  collection: 'sessions'
+});
+
+// Catch errors
+store.on('error', function (error) {
+  assert.ifError(error);
+  assert.ok(false);
+});
+
+var sessionOptions = {
+  secret: 'This is a secret',
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+  },
+  store: store,
+  resave: true,
+  saveUninitialized: true
+}
+
+app.use(session(sessionOptions));
+
+//-------------------------------------
+// authentication
+//-------------------------------------
+passport.serializeUser(function (user, cb) {
+  cb(null, user.username);
+});
+
+passport.deserializeUser(function (username, cb) {
+  mongodb.db("auth").collection("users").findOne({ username: username }, function (err, user) {
+    if (err) return cb(err)
+    if (!user) { return cb(null, false); }
+    return cb(null, user);
+  });
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(require('@softroles/authorize-bearer-token')(function (token, cb) {
+  mongodb.db("auth").collection("users").findOne({ token: token }, function (err, user) {
+    if (err) return cb(err)
+    if (!user) { return cb(null, false); }
+    return cb(null, user);
+  });
+}))
+
+//-------------------------------------
 // common middlewares
 //-------------------------------------
-app.use(require('@softroles/authorize-local-user')())
+// app.use(require('@softroles/authorize-local-user')())
 app.use(require('morgan')('tiny'));
 app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
