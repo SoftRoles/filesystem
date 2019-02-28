@@ -136,8 +136,10 @@ app.post('/filesystem/api/v1/files', function (req, res) {
       basename: req.files.upload.name,
       name: String(Date.now()) + "-" + req.files.upload.name,
       folder: req.body.folder,
-      mate: req.body.mdate,
-      date: moment().format("YYYY.MM.DD HH:mm:ss")
+      mdate: req.body.mdate,
+      date: moment().format("YYYY.MM.DD HH:mm:ss"),
+      mimetype: req.files.upload.mimetype
+
     }
     req.files.upload.mv(path.join(filesFolder, file.folder, file.name), function (err) {
       if (err) res.send(err);
