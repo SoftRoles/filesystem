@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@softroles/authorize-bearer-token": "^1.0.0",
+    "@softroles/authorize-bearer-token": "^1.0.1",
     "@softroles/authorize-local-user": "^1.2.0",
     "@softroles/user-env-variable": "^1.1.0",
     "argparse": "^1.0.10",
