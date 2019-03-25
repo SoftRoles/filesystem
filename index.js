@@ -128,6 +128,8 @@ app.get('/filesystem/api/v1/files', function (req, res) {
 
 app.post('/filesystem/api/v1/files', function (req, res) {
   if (!req.files) return res.sendStatus(400)
+  //console.log(req.files)
+  //console.log(req.body)
   mkdirp(path.join(filesFolder, req.body.folder), function (err) {
     if (err) res.send(err)
     let file = {
@@ -137,10 +139,11 @@ app.post('/filesystem/api/v1/files', function (req, res) {
       name: String(Date.now()) + "-" + req.files.upload.name,
       folder: req.body.folder,
       mdate: req.body.mdate,
-      date: moment().format("YYYY.MM.DD HH:mm:ss"),
+      date: moment().format("YYYY-MM-DD HH:mm:ss"),
       mimetype: req.files.upload.mimetype
 
     }
+    //console.log(file)
     req.files.upload.mv(path.join(filesFolder, file.folder, file.name), function (err) {
       if (err) res.send(err);
       file.size = fs.statSync(path.join(filesFolder, file.folder, file.name)).size
@@ -149,6 +152,7 @@ app.post('/filesystem/api/v1/files', function (req, res) {
       file.owners.push(req.user.username)
       if (file.users.indexOf("admin") === -1) { file.users.push("admin") }
       if (file.owners.indexOf("admin") === -1) { file.owners.push("admin") }
+      console.log(file)
       mongodb.db("filesystem").collection("files").insertOne(file, function (err, r) {
         if (err) res.send({ error: err })
         else res.send(Object.assign({}, r.result, { insertedId: r.insertedId }, file))
