@@ -13,6 +13,7 @@ const filesize = require("filesize")
 const moment = require("moment")
 const assert = require('assert')
 const dirTree = require('directory-tree');
+const { noCache } = require('helmet');
 
 //-------------------------------------
 // arguments
@@ -97,7 +98,7 @@ app.use(require('@softroles/authorize-bearer-token')(function (token, cb) {
 //-------------------------------------
 // common middlewares
 //-------------------------------------
-// app.use(require('@softroles/authorize-local-user')())
+app.use(noCache())
 app.use(require('morgan')('tiny'));
 app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
