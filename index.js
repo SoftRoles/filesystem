@@ -98,7 +98,7 @@ app.use(require('@softroles/authorize-bearer-token')(function (token, cb) {
 //-------------------------------------
 // common middlewares
 //-------------------------------------
-app.use(noCache())
+// app.use(noCache())
 app.use(require('morgan')('tiny'));
 app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }));
