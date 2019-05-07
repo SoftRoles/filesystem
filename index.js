@@ -95,6 +95,7 @@ app.use(require('@softroles/authorize-bearer-token')(function (token, cb) {
   });
 }))
 
+app.use(require('@softroles/authorize-guest')())
 //-------------------------------------
 // common middlewares
 //-------------------------------------
