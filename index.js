@@ -118,7 +118,7 @@ app.use(require('express-fileupload')())
 //-------------------------------------
 // files
 //-------------------------------------
-const filesFolder = path.normalize(path.join(__dirname,"../../Datas/files"))
+const filesFolder = path.normalize(path.join(__dirname,"../../datas/files"))
 
 app.get('/filesystem/api/v1/files', function (req, res) {
   req.query.users = req.user.username
