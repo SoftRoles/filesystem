@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filesystem Microservice Test</title>
+</head>
+
+<body>
+  <h1>File upload</h1>
+  <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+  
+  <h2>Single file</h2>
+  <form method="post" action="/filesystem/files" enctype="multipart/form-data" target="dummyframe">
+    <input type="text" name="folder", value="test" style="display: none;">
+    <!-- <input type="number" name="size", value=0 style="display: none;">
+    <input type="text" name="type", value="" style="display: none;">
+    <input type="number" name="lastModified", value=0 style="display: none;"> -->
+    <input type="file" name="file">
+    <input type="submit">
+  </form>
+
+  <h2>Multiple file</h2>
+  <form method="post" action="/filesystem/files" enctype="multipart/form-data" target="dummyframe">
+    <input type="text" name="folder", value="test" style="display: none;">
+    <input type="file" name="files" multiple>
+    <input type="submit">
+  </form>
+  
+  <h2>Directory</h2>
+  <form method="post" action="/filesystem/files" enctype="multipart/form-data" target="dummyframe">
+    <input type="text" name="folder", value="test" style="display: none;">
+    <input type="file" name="files" multiple directory="" webkitdirectory="" moxdirectory="">
+    <input type="submit">
+  </form>
+
+  <script>
+    document.querySelectorAll('[type="file"]').forEach(item=> item.addEventListener('change', function (event) {
+      console.log(event.target)
+      if (event.target.files) {
+        console.log(event.target.files)
+        if(event.target.files[0].webkitRelativePath) {
+          document.querySelectorAll('[name="folder"]')[2].setAttribute("value",event.target.files[0].webkitRelativePath.split("/").slice(0,-1).join("/"))
+        }
+      //   document.querySelector('[name="size"]').setAttribute("value",event.target.files[0].size)
+      //   document.querySelector('[name="lastModified"]').setAttribute("value",event.target.files[0].lastModified)
+      //   document.querySelector('[name="type"]').setAttribute("value",event.target.files[0].type)
+      }
+    }))
+  </script>
+</body>
+
+</html>
